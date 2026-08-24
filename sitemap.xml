@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://DOMAIN/index.html</loc></url>
+  <url><loc>https://DOMAIN/about.html</loc></url>
+  <url><loc>https://DOMAIN/contact.html</loc></url>
+  <url><loc>https://DOMAIN/privacy.html</loc></url>
+  <url><loc>https://DOMAIN/terms.html</loc></url>
+  <url><loc>https://DOMAIN/templates/today-sentence.html</loc></url>
+  <url><loc>https://DOMAIN/templates/reading-reason.html</loc></url>
+  <url><loc>https://DOMAIN/templates/author-intro.html</loc></url>
+  <url><loc>https://DOMAIN/templates/reading-goal.html</loc></url>
+  <url><loc>https://DOMAIN/templates/star-rating.html</loc></url>
+  <url><loc>https://DOMAIN/templates/impressive-phrase.html</loc></url>
+  <url><loc>https://DOMAIN/templates/underlined-sentence.html</loc></url>
+  <url><loc>https://DOMAIN/templates/after-reading.html</loc></url>
+  <url><loc>https://DOMAIN/templates/before-reading.html</loc></url>
+  <url><loc>https://DOMAIN/templates/book-quote.html</loc></url>
+  <url><loc>https://DOMAIN/templates/book-keywords.html</loc></url>
+  <url><loc>https://DOMAIN/templates/one-line-review.html</loc></url>
+  <url><loc>https://DOMAIN/templates/today-pages.html</loc></url>
+  <url><loc>https://DOMAIN/templates/monthly-books.html</loc></url>
+  <url><loc>https://DOMAIN/templates/recommend-reason.html</loc></url>
+</urlset>

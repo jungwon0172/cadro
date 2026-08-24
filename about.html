@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사이트 소개 | 카드로</title>
+<meta name="description" content="카드로는 독서 카드뉴스 템플릿을 모아둔 아카이브입니다.">
+<link rel="canonical" href="https://DOMAIN/about.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="사이트 소개 | 카드로">
+<meta property="og:description" content="카드로는 독서 카드뉴스 템플릿을 모아둔 아카이브입니다.">
+<meta property="og:url" content="https://DOMAIN/about.html">
+
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2557338953436433" crossorigin="anonymous"></script>
+
+<meta name="naver-site-verification" content="NAVER_VERIFICATION_CODE" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="brand">카드로 <span class="stamp">CARD·RO</span></a>
+    <nav class="main-nav">
+      <a href="index.html">갤러리</a>
+      <a href="about.html">소개</a>
+      <a href="contact.html">문의</a>
+    </nav>
+  </div>
+</header>
+
+
+<section class="static-page">
+  <div class="wrap" style="max-width:720px;">
+    <h1 class="serif">카드로 소개</h1>
+    <p>카드로(cardro)는 독서 기록을 조금 더 예쁘고 편하게 남기고 싶은 분들을 위한 카드뉴스 템플릿 아카이브예요. 오늘 읽은 문장 하나, 완독 후의 소감 한 줄도 정성껏 담을 수 있도록 미니멀·감성·인포그래픽 3가지 무드로 템플릿을 정리했습니다.</p>
+    <h2>이런 분들께 추천해요</h2>
+    <ul>
+      <li>북스타그램·SNS에 독서 기록을 꾸준히 남기고 싶은 분</li>
+      <li>독서모임 발제 자료나 활동지를 간단히 만들고 싶은 분</li>
+      <li>학교·스터디에서 독서 활동 콘텐츠가 필요한 분</li>
+    </ul>
+    <h2>템플릿 이용 안내</h2>
+    <p>직접 제작한 템플릿은 PNG로 바로 다운로드해 사용할 수 있고, 큐레이션 템플릿은 Canva 링크로 연결되어 그 자리에서 문구와 이미지를 편집할 수 있어요. 모든 템플릿은 개인적·비상업적 용도로 자유롭게 사용 가능합니다.</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="about.html">사이트 소개</a>
+      <a href="contact.html">문의하기</a>
+      <a href="privacy.html">개인정보처리방침</a>
+      <a href="terms.html">이용약관</a>
+    </div>
+    <div class="foot-meta">© 2026 카드로(cardro). 독서 카드뉴스 템플릿 아카이브.</div>
+  </div>
+</footer>
+
+<div class="cookie-banner" id="cookieBanner">
+  <span>이 사이트는 서비스 개선과 맞춤형 광고 제공을 위해 쿠키를 사용합니다. 자세한 내용은 <a href="privacy.html">개인정보처리방침</a>을 확인해 주세요.</span>
+  <button id="cookieAccept">확인했어요</button>
+</div>
+
+<script src="assets/js/editor.js"></script>
+<script>
+(function(){
+  var KEY = "cardro_cookie_consent";
+  var banner = document.getElementById("cookieBanner");
+  if(!localStorage.getItem(KEY)){
+    banner.classList.add("show");
+  }
+  document.getElementById("cookieAccept").addEventListener("click", function(){
+    localStorage.setItem(KEY, "1");
+    banner.classList.remove("show");
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이용약관 | 카드로</title>
+<meta name="description" content="카드로 이용약관.">
+<link rel="canonical" href="https://DOMAIN/terms.html">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="이용약관 | 카드로">
+<meta property="og:description" content="카드로 이용약관.">
+<meta property="og:url" content="https://DOMAIN/terms.html">
+
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2557338953436433" crossorigin="anonymous"></script>
+
+<meta name="naver-site-verification" content="NAVER_VERIFICATION_CODE" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="brand">카드로 <span class="stamp">CARD·RO</span></a>
+    <nav class="main-nav">
+      <a href="index.html">갤러리</a>
+      <a href="about.html">소개</a>
+      <a href="contact.html">문의</a>
+    </nav>
+  </div>
+</header>
+
+
+<section class="static-page">
+  <div class="wrap" style="max-width:720px;">
+    <h1 class="serif">이용약관</h1>
+    <h2>1. 목적</h2>
+    <p>본 약관은 카드로(이하 '사이트')가 제공하는 독서 카드뉴스 템플릿 서비스 이용과 관련하여 사이트와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+    <h2>2. 콘텐츠 이용</h2>
+    <p>사이트에서 직접 제작해 제공하는 템플릿(PNG)은 개인적·비상업적 용도로 자유롭게 사용할 수 있습니다. 재배포 또는 상업적 판매는 금지됩니다. 큐레이션 템플릿은 각 외부 플랫폼(Canva 등)의 이용약관을 따릅니다.</p>
+    <h2>3. 면책조항</h2>
+    <p>사이트는 큐레이션된 외부 링크의 콘텐츠 변경, 삭제 등에 대해 책임을 지지 않습니다.</p>
+    <h2>4. 약관의 변경</h2>
+    <p>본 약관은 필요 시 사전 고지 없이 변경될 수 있으며, 변경된 약관은 사이트에 게시함으로써 효력을 발생합니다.</p>
+    <p class="mono" style="font-size:12px;">시행일: 2026년 8월 17일</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="about.html">사이트 소개</a>
+      <a href="contact.html">문의하기</a>
+      <a href="privacy.html">개인정보처리방침</a>
+      <a href="terms.html">이용약관</a>
+    </div>
+    <div class="foot-meta">© 2026 카드로(cardro). 독서 카드뉴스 템플릿 아카이브.</div>
+  </div>
+</footer>
+
+<div class="cookie-banner" id="cookieBanner">
+  <span>이 사이트는 서비스 개선과 맞춤형 광고 제공을 위해 쿠키를 사용합니다. 자세한 내용은 <a href="privacy.html">개인정보처리방침</a>을 확인해 주세요.</span>
+  <button id="cookieAccept">확인했어요</button>
+</div>
+
+<script src="assets/js/editor.js"></script>
+<script>
+(function(){
+  var KEY = "cardro_cookie_consent";
+  var banner = document.getElementById("cookieBanner");
+  if(!localStorage.getItem(KEY)){
+    banner.classList.add("show");
+  }
+  document.getElementById("cookieAccept").addEventListener("click", function(){
+    localStorage.setItem(KEY, "1");
+    banner.classList.remove("show");
+  });
+})();
+</script>
+
+</body>
+</html>
