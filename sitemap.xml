@@ -10,14 +10,32 @@
   <url><loc>https://DOMAIN/templates/author-intro.html</loc></url>
   <url><loc>https://DOMAIN/templates/reading-goal.html</loc></url>
   <url><loc>https://DOMAIN/templates/star-rating.html</loc></url>
+  <url><loc>https://DOMAIN/templates/book-title.html</loc></url>
+  <url><loc>https://DOMAIN/templates/finish-date.html</loc></url>
+  <url><loc>https://DOMAIN/templates/next-read.html</loc></url>
+  <url><loc>https://DOMAIN/templates/reading-place.html</loc></url>
+  <url><loc>https://DOMAIN/templates/book-definition.html</loc></url>
+  <url><loc>https://DOMAIN/templates/minimal-story.html</loc></url>
   <url><loc>https://DOMAIN/templates/impressive-phrase.html</loc></url>
   <url><loc>https://DOMAIN/templates/underlined-sentence.html</loc></url>
   <url><loc>https://DOMAIN/templates/after-reading.html</loc></url>
   <url><loc>https://DOMAIN/templates/before-reading.html</loc></url>
   <url><loc>https://DOMAIN/templates/book-quote.html</loc></url>
+  <url><loc>https://DOMAIN/templates/rainy-day-sentence.html</loc></url>
+  <url><loc>https://DOMAIN/templates/character-line.html</loc></url>
+  <url><loc>https://DOMAIN/templates/reread-sentence.html</loc></url>
+  <url><loc>https://DOMAIN/templates/midnight-page.html</loc></url>
+  <url><loc>https://DOMAIN/templates/farewell-book.html</loc></url>
+  <url><loc>https://DOMAIN/templates/sentimental-story.html</loc></url>
   <url><loc>https://DOMAIN/templates/book-keywords.html</loc></url>
   <url><loc>https://DOMAIN/templates/one-line-review.html</loc></url>
   <url><loc>https://DOMAIN/templates/today-pages.html</loc></url>
   <url><loc>https://DOMAIN/templates/monthly-books.html</loc></url>
   <url><loc>https://DOMAIN/templates/recommend-reason.html</loc></url>
+  <url><loc>https://DOMAIN/templates/book-info.html</loc></url>
+  <url><loc>https://DOMAIN/templates/reading-progress.html</loc></url>
+  <url><loc>https://DOMAIN/templates/genre-breakdown.html</loc></url>
+  <url><loc>https://DOMAIN/templates/book-vs-book.html</loc></url>
+  <url><loc>https://DOMAIN/templates/reading-time.html</loc></url>
+  <url><loc>https://DOMAIN/templates/infographic-story.html</loc></url>
 </urlset>

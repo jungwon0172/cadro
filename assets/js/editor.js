@@ -1,10 +1,9 @@
 /* =========================================================
    카드로 — 카드뉴스 실시간 편집기 (Canvas)
    PIL로 만든 원본 템플릿 디자인을 브라우저에서 동일한 톤으로 재현.
+   card(1080x1350)와 story(1080x1920) 두 포맷을 canvas 크기 기준으로 지원.
    ========================================================= */
 (function () {
-  var W = 1080, H = 1350;
-
   var MOOD_COLORS = {
     minimal: { bg: "#F7F5F1", accent: "#2B2B2B", sub: "#8A8578" },
     sentimental: { bg: "#FBEFE9", accent: "#B8624F", sub: "#D9A79C" },
@@ -55,14 +54,14 @@
     return y;
   }
 
-  function drawMinimal(ctx, cfg) {
+  function drawMinimal(ctx, cfg, w, h) {
     var c = MOOD_COLORS.minimal;
-    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, w, h);
     ctx.textBaseline = "top"; ctx.textAlign = "left";
 
     var margin = 90;
     ctx.strokeStyle = c.accent; ctx.lineWidth = 2;
-    ctx.strokeRect(margin, margin, W - margin * 2, H - margin * 2);
+    ctx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
 
     ctx.fillStyle = c.sub;
     ctx.font = '500 28px "Noto Sans KR", sans-serif';
@@ -77,23 +76,23 @@
     ctx.fillStyle = c.accent;
     ctx.font = '700 66px "Noto Serif KR", serif';
     var title = cfg.title || "문장을 입력해 보세요";
-    var lines = wrapText(ctx, title, W - 2 * (margin + 40));
-    var startY = H / 2 - (lines.length * 84) / 2;
-    drawCenteredMultiline(ctx, lines, W / 2, startY, 84);
+    var lines = wrapText(ctx, title, w - 2 * (margin + 40));
+    var startY = h / 2 - (lines.length * 84) / 2;
+    drawCenteredMultiline(ctx, lines, w / 2, startY, 84);
 
     ctx.fillStyle = c.sub;
     ctx.font = '400 26px "Noto Sans KR", sans-serif';
     var cap = cfg.caption || "여기에 문장을 채워 넣어보세요";
-    var w = ctx.measureText(cap).width;
-    ctx.fillText(cap, W / 2 - w / 2, H - margin - 130);
+    var cw = ctx.measureText(cap).width;
+    ctx.fillText(cap, w / 2 - cw / 2, h - margin - 130);
 
     ctx.font = '400 22px "Noto Sans KR", sans-serif';
-    ctx.fillText("카드로 · cardro.kr", margin + 40, H - margin - 60);
+    ctx.fillText("카드로 · cardro.kr", margin + 40, h - margin - 60);
   }
 
-  function drawSentimental(ctx, cfg, slug) {
+  function drawSentimental(ctx, cfg, w, h, slug) {
     var c = MOOD_COLORS.sentimental;
-    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, w, h);
 
     // soft blobs (seeded so it's stable per template)
     var rand = mulberry32(hashSeed(slug || "seed"));
@@ -105,8 +104,8 @@
     ctx.save();
     try { ctx.filter = "blur(70px)"; } catch (e) {}
     for (var i = 0; i < 5; i++) {
-      var cx = rand() * W;
-      var cy = rand() * H * 0.5;
+      var cx = rand() * w;
+      var cy = rand() * h * 0.5;
       var r = 150 + rand() * 170;
       ctx.fillStyle = blobColors[Math.floor(rand() * blobColors.length)];
       ctx.beginPath();
@@ -122,43 +121,43 @@
 
     ctx.font = '500 58px "Noto Serif KR", serif';
     var quote = cfg.title || "인상 깊은 문장을 입력해 보세요";
-    var lines = wrapText(ctx, quote, W - 260);
-    var y = H / 2 - (lines.length * 76) / 2;
+    var lines = wrapText(ctx, quote, w - 260);
+    var y = h / 2 - (lines.length * 76) / 2;
     for (var i2 = 0; i2 < lines.length; i2++) {
       var lw = ctx.measureText(lines[i2]).width;
-      ctx.fillText(lines[i2], W / 2 - lw / 2, y);
+      ctx.fillText(lines[i2], w / 2 - lw / 2, y);
       y += 76;
     }
 
     ctx.font = '700 160px "Noto Serif KR", serif';
     var w2 = ctx.measureText("\u201D").width;
-    ctx.fillText("\u201D", W - 90 - w2, H - 400);
+    ctx.fillText("\u201D", w - 90 - w2, h - 400);
 
     ctx.fillStyle = c.sub;
     ctx.font = '400 24px "Noto Sans KR", sans-serif';
     var cap = cfg.caption || "오늘, 이 문장이 마음에 남았다";
-    var cw = ctx.measureText(cap).width;
-    ctx.fillText(cap, W / 2 - cw / 2, H - 170);
+    var capw = ctx.measureText(cap).width;
+    ctx.fillText(cap, w / 2 - capw / 2, h - 170);
 
     ctx.font = '400 20px "Noto Sans KR", sans-serif';
-    ctx.fillText("카드로 · cardro.kr", 90, H - 90);
+    ctx.fillText("카드로 · cardro.kr", 90, h - 90);
   }
 
-  function drawInfographic(ctx, cfg) {
+  function drawInfographic(ctx, cfg, w, h) {
     var c = MOOD_COLORS.infographic;
-    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, w, h);
     ctx.textBaseline = "top"; ctx.textAlign = "left";
 
-    ctx.fillStyle = c.accent; ctx.fillRect(0, 0, W, 140);
+    ctx.fillStyle = c.accent; ctx.fillRect(0, 0, w, 140);
     ctx.fillStyle = "#fff";
     ctx.font = '700 40px "Noto Sans KR", sans-serif';
     ctx.fillText("BOOK CARD", 60, 45);
 
     ctx.fillStyle = c.accent;
     ctx.font = '700 52px "Noto Sans KR", sans-serif';
-    var titleLines = wrapText(ctx, cfg.title || "제목을 입력해 보세요", W - 120);
+    var titleLines = wrapText(ctx, cfg.title || "제목을 입력해 보세요", w - 120);
     var y = 200;
-    y = drawCenteredMultiline(ctx, titleLines, W / 2, y, 66);
+    y = drawCenteredMultiline(ctx, titleLines, w / 2, y, 66);
 
     var blockTop = y + 60;
     var blockH = 150;
@@ -168,10 +167,9 @@
     for (var i = 0; i < 3; i++) {
       var it = items[i] || {};
       var by = blockTop + i * (blockH + 30);
-      // card
       ctx.fillStyle = "#fff";
       ctx.strokeStyle = c.sub; ctx.lineWidth = 2;
-      roundRect(ctx, 80, by, W - 160, blockH, 18);
+      roundRect(ctx, 80, by, w - 160, blockH, 18);
       ctx.fill(); ctx.stroke();
 
       var iconCx = 160, iconCy = by + blockH / 2, r = 34;
@@ -199,7 +197,7 @@
 
     ctx.fillStyle = c.sub;
     ctx.font = '400 22px "Noto Sans KR", sans-serif';
-    ctx.fillText("카드로 · cardro.kr", 60, H - 70);
+    ctx.fillText("카드로 · cardro.kr", 60, h - 70);
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -245,14 +243,17 @@
     var ctx = canvas.getContext("2d");
     var slug = opts.slug;
     var mood = opts.mood;
+    // 캔버스 자체의 width/height 속성(포맷별로 build.py가 지정)을 그대로 사용
+    var w = canvas.width || 1080;
+    var h = canvas.height || 1350;
 
     function redraw() {
       var cfg = collectConfig(mood, root);
       var renderer = RENDERERS[mood];
       if (mood === "sentimental") {
-        renderer(ctx, cfg, slug);
+        renderer(ctx, cfg, w, h, slug);
       } else {
-        renderer(ctx, cfg);
+        renderer(ctx, cfg, w, h);
       }
     }
 
