@@ -1,314 +1,255 @@
 /* =========================================================
-   카드로 — 카드뉴스 실시간 편집기 (Canvas)
-   PIL로 만든 원본 템플릿 디자인을 브라우저에서 동일한 톤으로 재현.
-   card(1080x1350)와 story(1080x1920) 두 포맷을 canvas 크기 기준으로 지원.
+   카드로 편집기 (브라우저)
+   - 글꼴/색상/사진/여러 장 세트/PNG·ZIP 다운로드/자동 저장
+   - 모든 처리는 브라우저 안에서만 이루어진다 (사진·텍스트는 서버로 전송되지 않음)
    ========================================================= */
 (function () {
-  var MOOD_COLORS = {
-    minimal: { bg: "#F7F5F1", accent: "#2B2B2B", sub: "#8A8578" },
-    sentimental: { bg: "#FBEFE9", accent: "#B8624F", sub: "#D9A79C" },
-    infographic: { bg: "#EAF1F3", accent: "#1F5C6E", sub: "#5B96A8" },
-  };
+  var E = window.CardroEngine, Z = window.CardroZip;
+  var cfgEl = document.getElementById("studio-config");
+  var root = document.getElementById("studio");
+  if (!E || !cfgEl || !root) return;
+  var CFG = JSON.parse(cfgEl.textContent), T = CFG.tpl, G = CFG.global;
+  var canvas = root.querySelector("canvas"), ctx = canvas.getContext("2d");
+  var MAX_SLIDES = 8, KEY = "cardro:v2:" + T.slug;
 
-  function hashSeed(str) {
-    var h = 0;
-    for (var i = 0; i < str.length; i++) {
-      h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-    }
-    return h >>> 0;
+  function $(sel) { return root.querySelector(sel); }
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function defaults() { var v = {}; T.fields.forEach(function (f) { v[f.key] = f.default; }); return v; }
+  function defaultWm() {
+    var h = location.hostname || "";
+    if (!h || h === "localhost" || h.indexOf(".") < 0 || /^\d+\.\d+\.\d+\.\d+$/.test(h)) return "카드로";
+    return "카드로 · " + h.replace(/^www\./, "");
   }
 
-  function mulberry32(seed) {
-    return function () {
-      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
-      var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  var state = {
+    slides: [defaults()], active: 0, palette: T.palette, font: T.font,
+    wmOn: true, wmText: defaultWm(), pageNum: false, zoom: 1,
+  };
+  var photo = null, photoUrl = null;
+
+  /* ---------- 저장 / 복원 ---------- */
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      if (!s || !Array.isArray(s.slides) || !s.slides.length) return;
+      var base = defaults();
+      state.slides = s.slides.slice(0, MAX_SLIDES).map(function (sl) {
+        var o = {}; T.fields.forEach(function (f) { o[f.key] = sl && sl[f.key] != null ? String(sl[f.key]) : base[f.key]; }); return o;
+      });
+      state.active = Math.min(Math.max(0, s.active | 0), state.slides.length - 1);
+      if (G.palettes[s.palette]) state.palette = s.palette;
+      if (G.fonts[s.font]) state.font = s.font;
+      state.wmOn = s.wmOn !== false;
+      if (typeof s.wmText === "string") state.wmText = s.wmText;
+      state.pageNum = !!s.pageNum;
+      state.zoom = Math.min(2.5, Math.max(1, +s.zoom || 1));
+    } catch (e) {}
+  }
+  function cur() { return state.slides[state.active]; }
+
+  /* ---------- 렌더링 ---------- */
+  function spec(i) {
+    return {
+      design: T.design, variant: T.variant, w: T.w, h: T.h,
+      palette: G.palettes[state.palette], font: G.fonts[state.font],
+      text: state.slides[i], photo: photo, photoZoom: state.zoom,
+      watermark: state.wmOn ? state.wmText : "",
+      page: { index: i, total: state.slides.length, show: state.pageNum },
+      seed: T.slug,
     };
   }
+  function draw() { E.render(ctx, spec(state.active)); }
+  var raf = 0, fontTimer = 0;
+  function schedule() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; draw(); }); }
+  function ensureFonts() {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    var f = G.fonts[state.font], txt = "가나다라마바사0123456789";
+    state.slides.forEach(function (s) { for (var k in s) txt += s[k]; });
+    txt += state.wmText;
+    var specs = [f.weight + " 40px " + f.family, (f.boldWeight || 700) + " 40px " + f.family,
+      '400 30px "Noto Sans KR"', '500 30px "Noto Sans KR"', '700 30px "Noto Sans KR"', '700 60px "Noto Serif KR"'];
+    return Promise.all(specs.map(function (s) { return document.fonts.load(s, txt).catch(function () {}); }));
+  }
+  function scheduleFonts() { clearTimeout(fontTimer); fontTimer = setTimeout(function () { ensureFonts().then(schedule); }, 180); }
+  function changed(skipFonts) { save(); schedule(); if (!skipFonts) scheduleFonts(); }
 
-  function wrapText(ctx, text, maxWidth) {
-    var lines = [];
-    var current = "";
-    var chars = Array.from(text || "");
-    for (var i = 0; i < chars.length; i++) {
-      var test = current + chars[i];
-      if (ctx.measureText(test).width > maxWidth && current) {
-        lines.push(current);
-        current = chars[i];
-      } else {
-        current = test;
+  /* ---------- 입력 항목 ---------- */
+  function buildFields() {
+    var box = $("#fieldsBox"); box.innerHTML = "";
+    T.fields.forEach(function (f) {
+      var wrap = el("div", "fld"), id = "f-" + f.key;
+      var lab = el("label", null, f.label); lab.htmlFor = id; wrap.appendChild(lab);
+      var inp;
+      if (f.type === "textarea") { inp = el("textarea"); inp.rows = f.rows || 3; }
+      else {
+        inp = el("input"); inp.type = f.type === "number" ? "number" : "text";
+        if (f.type === "number") inp.inputMode = "numeric";
+        if (f.min != null) inp.min = f.min;
+        if (f.max != null) inp.max = f.max;
+        if (f.maxlength) inp.maxLength = f.maxlength;
       }
-    }
-    if (current) lines.push(current);
-    return lines;
-  }
-
-  function drawCenteredMultiline(ctx, lines, cx, top, lineHeight) {
-    var y = top;
-    for (var i = 0; i < lines.length; i++) {
-      var w = ctx.measureText(lines[i]).width;
-      ctx.fillText(lines[i], cx - w / 2, y);
-      y += lineHeight;
-    }
-    return y;
-  }
-
-  function drawMinimal(ctx, cfg, w, h) {
-    var c = MOOD_COLORS.minimal;
-    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, w, h);
-    ctx.textBaseline = "top"; ctx.textAlign = "left";
-
-    var margin = 90;
-    ctx.strokeStyle = c.accent; ctx.lineWidth = 2;
-    ctx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
-
-    ctx.fillStyle = c.sub;
-    ctx.font = '500 28px "Noto Sans KR", sans-serif';
-    ctx.fillText("READING NOTE", margin + 40, margin + 50);
-
-    ctx.strokeStyle = c.accent; ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(margin + 40, margin + 110);
-    ctx.lineTo(margin + 200, margin + 110);
-    ctx.stroke();
-
-    ctx.fillStyle = c.accent;
-    ctx.font = '700 66px "Noto Serif KR", serif';
-    var title = cfg.title || "문장을 입력해 보세요";
-    var lines = wrapText(ctx, title, w - 2 * (margin + 40));
-    var startY = h / 2 - (lines.length * 84) / 2;
-    drawCenteredMultiline(ctx, lines, w / 2, startY, 84);
-
-    ctx.fillStyle = c.sub;
-    ctx.font = '400 26px "Noto Sans KR", sans-serif';
-    var cap = cfg.caption || "여기에 문장을 채워 넣어보세요";
-    var cw = ctx.measureText(cap).width;
-    ctx.fillText(cap, w / 2 - cw / 2, h - margin - 130);
-
-    ctx.font = '400 22px "Noto Sans KR", sans-serif';
-    ctx.fillText("카드로 · cardro.kr", margin + 40, h - margin - 60);
-  }
-
-  function drawSentimental(ctx, cfg, w, h, slug) {
-    var c = MOOD_COLORS.sentimental;
-    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, w, h);
-
-    // soft blobs (seeded so it's stable per template)
-    var rand = mulberry32(hashSeed(slug || "seed"));
-    var blobColors = [
-      "rgba(216,167,156,0.28)",
-      "rgba(184,98,79,0.16)",
-      "rgba(250,235,225,0.5)",
-    ];
-    ctx.save();
-    try { ctx.filter = "blur(70px)"; } catch (e) {}
-    for (var i = 0; i < 5; i++) {
-      var cx = rand() * w;
-      var cy = rand() * h * 0.5;
-      var r = 150 + rand() * 170;
-      ctx.fillStyle = blobColors[Math.floor(rand() * blobColors.length)];
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    ctx.textBaseline = "top"; ctx.textAlign = "left";
-    ctx.fillStyle = c.accent;
-    ctx.font = '700 160px "Noto Serif KR", serif';
-    ctx.fillText("\u201C", 90, 90);
-
-    ctx.font = '500 58px "Noto Serif KR", serif';
-    var quote = cfg.title || "인상 깊은 문장을 입력해 보세요";
-    var lines = wrapText(ctx, quote, w - 260);
-    var y = h / 2 - (lines.length * 76) / 2;
-    for (var i2 = 0; i2 < lines.length; i2++) {
-      var lw = ctx.measureText(lines[i2]).width;
-      ctx.fillText(lines[i2], w / 2 - lw / 2, y);
-      y += 76;
-    }
-
-    ctx.font = '700 160px "Noto Serif KR", serif';
-    var w2 = ctx.measureText("\u201D").width;
-    ctx.fillText("\u201D", w - 90 - w2, h - 400);
-
-    ctx.fillStyle = c.sub;
-    ctx.font = '400 24px "Noto Sans KR", sans-serif';
-    var cap = cfg.caption || "오늘, 이 문장이 마음에 남았다";
-    var capw = ctx.measureText(cap).width;
-    ctx.fillText(cap, w / 2 - capw / 2, h - 170);
-
-    ctx.font = '400 20px "Noto Sans KR", sans-serif';
-    ctx.fillText("카드로 · cardro.kr", 90, h - 90);
-  }
-
-  function drawInfographic(ctx, cfg, w, h) {
-    var c = MOOD_COLORS.infographic;
-    ctx.fillStyle = c.bg; ctx.fillRect(0, 0, w, h);
-    ctx.textBaseline = "top"; ctx.textAlign = "left";
-
-    ctx.fillStyle = c.accent; ctx.fillRect(0, 0, w, 140);
-    ctx.fillStyle = "#fff";
-    ctx.font = '700 40px "Noto Sans KR", sans-serif';
-    ctx.fillText("BOOK CARD", 60, 45);
-
-    ctx.fillStyle = c.accent;
-    ctx.font = '700 52px "Noto Sans KR", sans-serif';
-    var titleLines = wrapText(ctx, cfg.title || "제목을 입력해 보세요", w - 120);
-    var y = 200;
-    y = drawCenteredMultiline(ctx, titleLines, w / 2, y, 66);
-
-    var blockTop = y + 60;
-    var blockH = 150;
-    var shapes = ["circle", "square", "triangle"];
-    var items = cfg.items || [];
-
-    for (var i = 0; i < 3; i++) {
-      var it = items[i] || {};
-      var by = blockTop + i * (blockH + 30);
-      ctx.fillStyle = "#fff";
-      ctx.strokeStyle = c.sub; ctx.lineWidth = 2;
-      roundRect(ctx, 80, by, w - 160, blockH, 18);
-      ctx.fill(); ctx.stroke();
-
-      var iconCx = 160, iconCy = by + blockH / 2, r = 34;
-      ctx.fillStyle = c.accent;
-      if (shapes[i] === "circle") {
-        ctx.beginPath(); ctx.arc(iconCx, iconCy, r, 0, Math.PI * 2); ctx.fill();
-      } else if (shapes[i] === "square") {
-        roundRect(ctx, iconCx - r, iconCy - r, r * 2, r * 2, 10); ctx.fill();
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(iconCx, iconCy - r);
-        ctx.lineTo(iconCx - r, iconCy + r);
-        ctx.lineTo(iconCx + r, iconCy + r);
-        ctx.closePath(); ctx.fill();
-      }
-
-      ctx.fillStyle = c.accent;
-      ctx.font = '700 30px "Noto Sans KR", sans-serif';
-      ctx.fillText(it.label || ("항목 " + (i + 1)), 230, by + 30);
-
-      ctx.fillStyle = c.sub;
-      ctx.font = '400 24px "Noto Sans KR", sans-serif';
-      ctx.fillText(it.desc || "내용을 채워보세요", 230, by + 78);
-    }
-
-    ctx.fillStyle = c.sub;
-    ctx.font = '400 22px "Noto Sans KR", sans-serif';
-    ctx.fillText("카드로 · cardro.kr", 60, h - 70);
-  }
-
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
-  var RENDERERS = {
-    minimal: drawMinimal,
-    sentimental: drawSentimental,
-    infographic: drawInfographic,
-  };
-
-  function collectConfig(mood, root) {
-    var cfg = {};
-    var titleEl = root.querySelector('[data-field="title"]');
-    if (titleEl) cfg.title = titleEl.value;
-    var capEl = root.querySelector('[data-field="caption"]');
-    if (capEl) cfg.caption = capEl.value;
-    if (mood === "infographic") {
-      cfg.items = [];
-      for (var i = 1; i <= 3; i++) {
-        var lab = root.querySelector('[data-field="item' + i + 'label"]');
-        var desc = root.querySelector('[data-field="item' + i + 'desc"]');
-        cfg.items.push({
-          label: lab ? lab.value : "",
-          desc: desc ? desc.value : "",
-        });
-      }
-    }
-    return cfg;
-  }
-
-  function initEditor(opts) {
-    var root = document.getElementById(opts.rootId);
-    if (!root) return;
-    var canvas = root.querySelector("canvas");
-    var ctx = canvas.getContext("2d");
-    var slug = opts.slug;
-    var mood = opts.mood;
-    // 캔버스 자체의 width/height 속성(포맷별로 build.py가 지정)을 그대로 사용
-    var w = canvas.width || 1080;
-    var h = canvas.height || 1350;
-
-    function redraw() {
-      var cfg = collectConfig(mood, root);
-      var renderer = RENDERERS[mood];
-      if (mood === "sentimental") {
-        renderer(ctx, cfg, w, h, slug);
-      } else {
-        renderer(ctx, cfg, w, h);
-      }
-    }
-
-    // Draw immediately so something always shows, even if the Font Loading
-    // API is unavailable in this browser.
-    redraw();
-
-    if (window.FontFace && document.fonts && typeof document.fonts.load === "function") {
-      var fontSpecs = [
-        '700 66px "Noto Serif KR"',
-        '500 58px "Noto Serif KR"',
-        '400 26px "Noto Sans KR"',
-        '700 40px "Noto Sans KR"',
-      ];
-      Promise.all(
-        fontSpecs.map(function (f) {
-          try {
-            return document.fonts.load(f, "가").catch(function () {});
-          } catch (e) {
-            return Promise.resolve();
-          }
-        })
-      ).then(redraw).catch(function () {});
-
-      if (document.fonts.ready && typeof document.fonts.ready.then === "function") {
-        document.fonts.ready.then(redraw).catch(function () {});
-      }
-    } else {
-      // Fallback for older browsers: redraw once more after a short delay
-      // to give web fonts a chance to swap in.
-      setTimeout(redraw, 400);
-      setTimeout(redraw, 1200);
-    }
-
-    var inputs = root.querySelectorAll("[data-field]");
-    inputs.forEach(function (inp) {
-      inp.addEventListener("input", redraw);
+      inp.id = id; inp.value = cur()[f.key];
+      if (f.placeholder) inp.placeholder = f.placeholder;
+      inp.addEventListener("input", function () { cur()[f.key] = inp.value; changed(); });
+      wrap.appendChild(inp);
+      if (f.hint) wrap.appendChild(el("div", "hint", f.hint));
+      box.appendChild(wrap);
     });
-
-    var downloadBtn = root.querySelector("[data-download]");
-    if (downloadBtn) {
-      downloadBtn.addEventListener("click", function () {
-        canvas.toBlob(function (blob) {
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement("a");
-          a.href = url;
-          a.download = slug + ".png";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
-        }, "image/png");
-      });
-    }
+  }
+  function syncFields() {
+    T.fields.forEach(function (f) { var i = document.getElementById("f-" + f.key); if (i) i.value = cur()[f.key]; });
   }
 
-  window.CardroEditor = { init: initEditor };
+  /* ---------- 스타일 (팔레트 / 글꼴 / 워터마크) ---------- */
+  function buildStyle() {
+    var pb = $("#paletteBox"); pb.innerHTML = "";
+    G.paletteOrder.forEach(function (id) {
+      var p = G.palettes[id], b = el("button", "swatch"); b.type = "button"; b.dataset.id = id;
+      b.title = p.label; b.setAttribute("aria-label", p.label + " 색상");
+      b.style.background = "linear-gradient(135deg," + p.bg + " 50%," + p.accent + " 50%)";
+      b.addEventListener("click", function () { state.palette = id; markPalette(); changed(true); });
+      pb.appendChild(b);
+    });
+    markPalette();
+    var fs = $("#fontSel"); fs.innerHTML = "";
+    G.fontOrder.forEach(function (id) { var o = el("option", null, G.fonts[id].label); o.value = id; fs.appendChild(o); });
+    fs.value = state.font;
+    fs.addEventListener("change", function () { state.font = fs.value; changed(); });
+    var wm = $("#wmOn"), wt = $("#wmText"), pn = $("#pageNum");
+    wm.checked = state.wmOn; wt.value = state.wmText; pn.checked = state.pageNum;
+    wm.addEventListener("change", function () { state.wmOn = wm.checked; changed(true); });
+    wt.addEventListener("input", function () { state.wmText = wt.value; changed(); });
+    pn.addEventListener("change", function () { state.pageNum = pn.checked; changed(true); });
+  }
+  function markPalette() {
+    var all = root.querySelectorAll(".swatch");
+    for (var i = 0; i < all.length; i++) all[i].classList.toggle("on", all[i].dataset.id === state.palette);
+    var nm = $("#paletteName"); if (nm) nm.textContent = G.palettes[state.palette].label;
+  }
+
+  /* ---------- 사진 ---------- */
+  function setupPhoto() {
+    var input = $("#photoInput"); if (!input) return;
+    var thumb = $("#photoThumb"), rm = $("#photoRemove"), zoom = $("#photoZoom"), ctl = $("#photoCtl");
+    zoom.value = state.zoom;
+    input.addEventListener("change", function () {
+      var f = input.files && input.files[0]; if (!f) return;
+      if (!/^image\//.test(f.type)) { say("이미지 파일만 올릴 수 있어요."); return; }
+      var url = URL.createObjectURL(f), img = new Image();
+      img.onload = function () {
+        var max = 1800, s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        photo = c;
+        if (photoUrl) URL.revokeObjectURL(photoUrl);
+        photoUrl = url; thumb.src = url; ctl.hidden = false; say("");
+        schedule();
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); say("이미지를 불러오지 못했어요. 다른 파일로 시도해 주세요."); };
+      img.src = url;
+    });
+    rm.addEventListener("click", function () {
+      photo = null; input.value = ""; ctl.hidden = true;
+      if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = null; }
+      schedule();
+    });
+    zoom.addEventListener("input", function () { state.zoom = +zoom.value; save(); schedule(); });
+  }
+
+  /* ---------- 여러 장 세트 ---------- */
+  function renderTabs() {
+    var box = $("#slideTabs"); box.innerHTML = "";
+    state.slides.forEach(function (s, i) {
+      var b = el("button", "slide-tab" + (i === state.active ? " on" : ""), String(i + 1)); b.type = "button";
+      b.setAttribute("aria-label", (i + 1) + "번째 장");
+      b.addEventListener("click", function () { state.active = i; syncFields(); renderTabs(); changed(true); });
+      box.appendChild(b);
+    });
+    if (state.slides.length < MAX_SLIDES) {
+      var add = el("button", "slide-tab add", "+"); add.type = "button"; add.setAttribute("aria-label", "장 추가 (현재 장 복제)");
+      add.addEventListener("click", addSlide); box.appendChild(add);
+    }
+    var many = state.slides.length > 1;
+    $("#btnZip").hidden = !many; $("#btnDel").hidden = !many;
+    $("#setInfo").textContent = state.slides.length + "장 / 최대 " + MAX_SLIDES + "장";
+  }
+  function addSlide() {
+    if (state.slides.length >= MAX_SLIDES) return;
+    var copy = JSON.parse(JSON.stringify(cur()));
+    state.slides.splice(state.active + 1, 0, copy); state.active++;
+    syncFields(); renderTabs(); changed(true);
+  }
+  function delSlide() {
+    if (state.slides.length < 2) return;
+    state.slides.splice(state.active, 1); state.active = Math.min(state.active, state.slides.length - 1);
+    syncFields(); renderTabs(); changed(true);
+  }
+
+  /* ---------- 다운로드 ---------- */
+  function renderTo(i) {
+    var c = document.createElement("canvas"); c.width = T.w; c.height = T.h;
+    E.render(c.getContext("2d"), spec(i)); return c;
+  }
+  function toBlob(c) { return new Promise(function (res) { c.toBlob(res, "image/png"); }); }
+  function saveBlob(blob, name) {
+    var url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+  }
+  function say(msg) { var m = $("#studioMsg"); if (m) m.textContent = msg || ""; }
+  function downloadOne() {
+    say("이미지를 만드는 중…");
+    ensureFonts().then(function () { return toBlob(renderTo(state.active)); }).then(function (b) {
+      saveBlob(b, T.slug + "-" + (state.active + 1) + ".png"); say("다운로드했어요.");
+    }).catch(function () { say("이미지를 만들지 못했어요. 다시 시도해 주세요."); });
+  }
+  function downloadZip() {
+    say("전체 " + state.slides.length + "장을 만드는 중…");
+    ensureFonts().then(function () {
+      var files = [], chain = Promise.resolve();
+      state.slides.forEach(function (s, i) {
+        chain = chain.then(function () { return toBlob(renderTo(i)); }).then(function (b) { return b.arrayBuffer(); }).then(function (buf) {
+          files.push({ name: T.slug + "-" + (i + 1) + ".png", data: new Uint8Array(buf) });
+        });
+      });
+      return chain.then(function () { return files; });
+    }).then(function (files) { saveBlob(Z.make(files), T.slug + ".zip"); say("ZIP으로 저장했어요."); })
+      .catch(function () { say("ZIP을 만들지 못했어요. 장 수를 줄여 다시 시도해 주세요."); });
+  }
+  function resetAll() {
+    if (!confirm("지금까지 입력한 내용을 모두 지우고 처음 상태로 되돌릴까요?")) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    state.slides = [defaults()]; state.active = 0; state.palette = T.palette; state.font = T.font;
+    state.wmOn = true; state.wmText = defaultWm(); state.pageNum = false; state.zoom = 1;
+    var rm = $("#photoRemove"); if (rm) rm.click();
+    buildFields(); buildStyle(); renderTabs(); schedule(); scheduleFonts(); say("처음 상태로 되돌렸어요.");
+  }
+
+  /* ---------- 패널 탭 ---------- */
+  function setupPanels() {
+    var tabs = root.querySelectorAll(".panel-tab"), panels = root.querySelectorAll(".panel");
+    for (var i = 0; i < tabs.length; i++) (function (t) {
+      t.addEventListener("click", function () {
+        for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle("on", tabs[j] === t);
+        for (var k = 0; k < panels.length; k++) panels[k].hidden = panels[k].dataset.panel !== t.dataset.tab;
+      });
+    })(tabs[i]);
+  }
+
+  /* ---------- 시작 ---------- */
+  load();
+  buildFields(); buildStyle(); setupPhoto(); renderTabs(); setupPanels();
+  $("#btnDownload").addEventListener("click", downloadOne);
+  $("#btnZip").addEventListener("click", downloadZip);
+  $("#btnDel").addEventListener("click", delSlide);
+  $("#btnDup").addEventListener("click", addSlide);
+  $("#btnReset").addEventListener("click", resetAll);
+  draw();
+  ensureFonts().then(schedule);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
 })();

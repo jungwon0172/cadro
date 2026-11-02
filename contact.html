@@ -33,6 +33,7 @@
     <a href="index.html" class="brand">카드로 <span class="stamp">CARD·RO</span></a>
     <nav class="main-nav">
       <a href="index.html">갤러리</a>
+      <a href="articles/index.html">가이드</a>
       <a href="about.html">소개</a>
       <a href="contact.html">문의</a>
     </nav>
@@ -46,14 +47,17 @@
     <p>템플릿 제안, 오류 신고, 제휴 문의 등 무엇이든 아래 이메일로 편하게 연락해 주세요.</p>
     <h2>이메일</h2>
     <p><a href="mailto:yjw2172@naver.com">yjw2172@naver.com</a></p>
+    <h2>오류 신고</h2>
+    <p>편집기에서 글자가 깨지거나 다운로드가 되지 않는다면 사용 중인 기기와 브라우저(예: 아이폰 Safari, 갤럭시 Chrome)를 함께 알려주시면 빠르게 확인할 수 있어요.</p>
     <h2>저작권 관련 문의</h2>
-    <p>큐레이션 템플릿의 원저작권은 각 원작자(Canva 등)에게 있습니다. 저작권 관련 문의사항이 있으시면 위 이메일로 연락 주시면 신속히 확인 후 조치하겠습니다.</p>
+    <p>저작권 관련 문의사항이 있으시면 위 이메일로 연락 주시면 신속히 확인 후 조치하겠습니다.</p>
   </div>
 </section>
 
 <footer class="site-footer">
   <div class="wrap">
     <div class="foot-links">
+      <a href="articles/index.html">독서 가이드</a>
       <a href="about.html">사이트 소개</a>
       <a href="contact.html">문의하기</a>
       <a href="privacy.html">개인정보처리방침</a>
@@ -68,16 +72,13 @@
   <button id="cookieAccept">확인했어요</button>
 </div>
 
-<script src="assets/js/editor.js"></script>
 <script>
 (function(){
   var KEY = "cardro_cookie_consent";
   var banner = document.getElementById("cookieBanner");
-  if(!localStorage.getItem(KEY)){
-    banner.classList.add("show");
-  }
+  try { if(!localStorage.getItem(KEY)){ banner.classList.add("show"); } } catch(e) { banner.classList.add("show"); }
   document.getElementById("cookieAccept").addEventListener("click", function(){
-    localStorage.setItem(KEY, "1");
+    try { localStorage.setItem(KEY, "1"); } catch(e) {}
     banner.classList.remove("show");
   });
 })();

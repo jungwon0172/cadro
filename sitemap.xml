@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://DOMAIN/index.html</loc></url>
+  <url><loc>https://DOMAIN/articles/index.html</loc></url>
   <url><loc>https://DOMAIN/about.html</loc></url>
   <url><loc>https://DOMAIN/contact.html</loc></url>
   <url><loc>https://DOMAIN/privacy.html</loc></url>
   <url><loc>https://DOMAIN/terms.html</loc></url>
+  <url><loc>https://DOMAIN/articles/bookstagram-start.html</loc></url>
+  <url><loc>https://DOMAIN/articles/reading-log-habit.html</loc></url>
+  <url><loc>https://DOMAIN/articles/book-club-discussion.html</loc></url>
+  <url><loc>https://DOMAIN/articles/choosing-sentences.html</loc></url>
+  <url><loc>https://DOMAIN/articles/cardnews-structure.html</loc></url>
+  <url><loc>https://DOMAIN/articles/instagram-story-tips.html</loc></url>
+  <url><loc>https://DOMAIN/articles/monthly-reading-review.html</loc></url>
+  <url><loc>https://DOMAIN/articles/set-reading-goals.html</loc></url>
+  <url><loc>https://DOMAIN/articles/after-reading-questions.html</loc></url>
   <url><loc>https://DOMAIN/templates/today-sentence.html</loc></url>
   <url><loc>https://DOMAIN/templates/reading-reason.html</loc></url>
   <url><loc>https://DOMAIN/templates/author-intro.html</loc></url>
