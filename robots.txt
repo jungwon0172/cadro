@@ -1,4 +1,35 @@
 User-agent: *
 Allow: /
 
+# AI 검색·답변 엔진 크롤러도 허용합니다 (학습용 수집을 막고 싶다면 해당 봇만 Disallow: / 로 바꾸세요)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://DOMAIN/sitemap.xml

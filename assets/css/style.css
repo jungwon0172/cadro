@@ -444,3 +444,14 @@ img{max-width:100%;display:block;}
   .preview-frame{padding:8px;}
   .panel-actions .btn{flex:1 1 100%;}
 }
+
+/* GEO: 한눈에 보기 / FAQ */
+.tldr{background:var(--paper-2); border:1px solid var(--line); border-left:4px solid var(--ink); padding:18px 22px; margin:20px 0 6px;}
+.tldr strong{display:block; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:8px;}
+.article .tldr ul{margin:0; padding-left:18px;}
+.article .tldr li{font-size:15px; line-height:1.7; margin-bottom:4px;}
+.faq{margin-top:34px;}
+.faq-item{padding:14px 0; border-bottom:1px solid var(--line);}
+.faq-item h3{font-family:'Noto Serif KR',serif; font-size:16.5px; margin:0 0 6px; line-height:1.5;}
+.faq-item p{font-size:14.5px; color:var(--ink-soft); margin:0; line-height:1.75;}
+.gallery .faq{max-width:760px;}
